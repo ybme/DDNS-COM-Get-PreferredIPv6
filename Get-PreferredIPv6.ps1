@@ -1,27 +1,28 @@
-#×¢Òâ±£´æ¸ÃÎÄ¼şµÄ±àÂë¸ñÊ½ÎªASCII£¬·ñÔòÎŞ·¨Ê¶±ğÖĞÎÄ×Ö·û´®£¬±ÈÈç£º ÒÔÌ«Íø
-# »ñÈ¡ËùÓĞ IPv6 µØÖ·¼°Æä¶ÔÓ¦µÄ½Ó¿Ú
+#æ³¨æ„ä¿å­˜è¯¥æ–‡ä»¶çš„ç¼–ç æ ¼å¼ä¸ºASCIIï¼Œå¦åˆ™æ— æ³•è¯†åˆ«ä¸­æ–‡å­—ç¬¦ä¸²ï¼Œæ¯”å¦‚ï¼š ä»¥å¤ªç½‘
+# è·å–æ‰€æœ‰ IPv6 åœ°å€åŠå…¶å¯¹åº”çš„æ¥å£
 $ipv6Addresses = Get-NetIPAddress -AddressFamily IPv6 | Where-Object {$_.AddressState -eq "Preferred"} | Select-Object IPAddress, InterfaceAlias
 
-# Êä³öËùÓĞÕÒµ½µÄ IPv6 µØÖ·¼°Æä½Ó¿Ú
+# è¾“å‡ºæ‰€æœ‰æ‰¾åˆ°çš„ IPv6 åœ°å€åŠå…¶æ¥å£ï¼Œç”¨äºè°ƒè¯•è¿‡ç¨‹ä¸­ä¸åŒè®¡ç®—æœºç¯å¢ƒï¼ŒæŸ¥çœ‹ç½‘ç»œä¿¡æ¯
 # Write-Output "All IPv6 Addresses:"
 # $ipv6Addresses | ForEach-Object { Write-Output "$($_.IPAddress) on $($_.InterfaceAlias)" }
 
-# ÓÅÏÈÑ¡Ôñ°üº¬ "ÒÔÌ«Íø" µÄ½Ó¿ÚµÄµÚÒ»¸ö·ûºÏ¹æÔòµÄ IPv6 µØÖ·
+# ä¼˜å…ˆé€‰æ‹©åŒ…å« "ä»¥å¤ªç½‘" çš„æ¥å£çš„ç¬¬ä¸€ä¸ªç¬¦åˆè§„åˆ™çš„ IPv6 åœ°å€ï¼Œä»¥åŠå®½å¸¦ç½‘ç»œçš„IPV6 å‰ç¼€ï¼Œæ¯”å¦‚ç”µä¿¡æ˜¯ 240eï¼Œå¹¶é€‰æ‹©ç¬¬ä¸€ä¸ª
 if (-not $preferredIPv6) {
-    $preferredIPv6 = $ipv6Addresses | Where-Object { $_.InterfaceAlias -like "*ÒÔÌ«Íø*" -and $_.IPAddress -like "240e*" } | Select-Object -First 1
+    $preferredIPv6 = $ipv6Addresses | Where-Object { $_.InterfaceAlias -like "*ä»¥å¤ªç½‘*" -and $_.IPAddress -like "240e*" } | Select-Object -First 1
 }
 
-# Èç¹ûÃ»ÓĞÕÒµ½·ûºÏÌõ¼şµÄµØÖ·£¬ÔòÑ¡Ôñ°üº¬ "WLAN" µÄ½Ó¿ÚµÄµÚÒ»¸ö IPv6 µØÖ·
+# å¦‚æœæ²¡æœ‰æ‰¾åˆ°ç¬¦åˆæ¡ä»¶çš„åœ°å€ï¼Œåˆ™é€‰æ‹©åŒ…å« "WLAN" çš„æ¥å£çš„ç¬¬ä¸€ä¸ª IPv6 åœ°å€ï¼Œä»¥åŠå®½å¸¦ç½‘ç»œçš„IPV6 å‰ç¼€ï¼Œæ¯”å¦‚ç”µä¿¡æ˜¯ 240eï¼Œå¹¶é€‰æ‹©ç¬¬ä¸€ä¸ª
+
 if (-not $preferredIPv6) {
     $preferredIPv6 = $ipv6Addresses | Where-Object { $_.InterfaceAlias -like "*WLAN*" -and $_.IPAddress -like "240e*" } | Select-Object -First 1
 }
 
-# Èç¹ûÈÔÈ»Ã»ÓĞÕÒµ½·ûºÏÌõ¼şµÄµØÖ·£¬Ñ¡ÔñµÚÒ»¸ö·ûºÏ¹æÔòµÄ IPv6 µØÖ·
+# å¦‚æœä»ç„¶æ²¡æœ‰æ‰¾åˆ°ç¬¦åˆæ¡ä»¶çš„åœ°å€ï¼Œé€‰æ‹©ç¬¬ä¸€ä¸ªç¬¦åˆå‰ç¼€çš„ IPv6 åœ°å€
 if (-not $preferredIPv6) {
     $preferredIPv6 = $ipv6Addresses | Where-Object { $_.IPAddress -like "240e*" } | Select-Object -First 1
 }
 
-# Êä³öÑ¡ÔñµÄ IPv6 µØÖ·
+# è¾“å‡ºé€‰æ‹©çš„ IPv6 åœ°å€
 if ($preferredIPv6) {
     Write-Output $preferredIPv6.IPAddress
 } else {
