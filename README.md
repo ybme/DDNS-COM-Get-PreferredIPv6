@@ -17,21 +17,67 @@ Set-ExecutionPolicy RemoteSigned
 ### 步骤 4： 更改脚本中的搜索条件
 
 ```
-# 优先选择包含 "以太网" 的接口的第一个符合规则的 IPv6 地址，以及宽带网络的IPV6 前缀，比如电信是 240e，并选择第一个
-if (-not $preferredIPv6) {
-    $preferredIPv6 = $ipv6Addresses | Where-Object { $_.InterfaceAlias -like "*以太网*" -and $_.IPAddress -like "240e*" } | Select-Object -First 1
-}
+# 设置需要获取的IPv6地址的顺序，第一个一般为全球单播地址，稳定可靠，但是长期暴露有安全风险，第二个地址一般为临时地址，更新频繁，但隐私保护更好
+$targetIndex = 2
 
-# 如果没有找到符合条件的地址，则选择包含 "WLAN" 的接口的第一个 IPv6 地址，以及宽带网络的IPV6 前缀，比如电信是 240e，并选择第一个
-
-if (-not $preferredIPv6) {
-    $preferredIPv6 = $ipv6Addresses | Where-Object { $_.InterfaceAlias -like "*WLAN*" -and $_.IPAddress -like "240e*" } | Select-Object -First 1
-}
-
-# 如果仍然没有找到符合条件的地址，选择第一个符合前缀的 IPv6 地址
-if (-not $preferredIPv6) {
-    $preferredIPv6 = $ipv6Addresses | Where-Object { $_.IPAddress -like "240e*" } | Select-Object -First 1
-}
+# 设置接口名称和IPv6前缀， 以太网 与 WLAN 有先后顺序，查找的前缀请根据第3步中得到的信息调整，一般电信为 240e
+$interfaceNames = @("以太网", "WLAN")
+$ipv6Prefix = "240e*"
 ```
 ### 步骤 5：打开DDNS-Go的设置界面，改为通过命令获取，类似以下：
 ![image](https://github.com/user-attachments/assets/8c24c843-746b-4697-b7b8-b7168ed41583)
+
+
+### 文件下载与新建说明：
+可下载Get-PreferredIPv6.ps1文件放在你电脑中的某个位置，然后按照步骤5设置它
+或者将以下全文Copy为文本后，保存为 Get-PreferredIPv6.ps1 文件，或者其他文件名，然后按照步骤5设置
+```
+#注意保存该文件的编码格式为ASCII，否则在某些系统中无法识别中文字符串，比如： 以太网
+
+# 设置需要获取的IPv6地址的顺序，第一个一般为全球单播地址，稳定可靠，但是长期暴露有安全风险，第二个地址一般为临时地址，更新频繁，但隐私保护更好
+$targetIndex = 2
+
+# 设置接口名称和IPv6前缀， 以太网 与 WLAN 有先后顺序
+$interfaceNames = @("以太网", "WLAN")
+$ipv6Prefix = "240e*"
+
+# 获取所有 IPv6 地址及其对应的接口
+$ipv6Addresses = Get-NetIPAddress -AddressFamily IPv6 | Where-Object {$_.AddressState -eq "Preferred"} | Select-Object IPAddress, InterfaceAlias
+
+# 输出所有找到的 IPv6 地址及其接口，用于调试过程中不同计算机环境下查看网络信息
+# Write-Output "All IPv6 Addresses:"
+# $ipv6Addresses | ForEach-Object { Write-Output "$($_.IPAddress) on $($_.InterfaceAlias)" }
+
+# 定义一个函数来获取符合条件的第 N 个 IPv6 地址
+function Get-PreferredIPv6Address {
+    param (
+        [array]$ipv6Addresses,
+        [string]$interfacePattern,
+        [string]$ipv6Prefix,
+        [int]$index
+    )
+
+    return $ipv6Addresses | Where-Object { $_.InterfaceAlias -like $interfacePattern -and $_.IPAddress -like $ipv6Prefix } | Select-Object -Skip ($index - 1) -First 1
+}
+
+# 尝试从指定的接口和前缀中获取第 N 个 IPv6 地址
+$preferredIPv6 = $null
+foreach ($interfaceName in $interfaceNames) {
+    if (-not $preferredIPv6) {
+        $preferredIPv6 = Get-PreferredIPv6Address -ipv6Addresses $ipv6Addresses -interfacePattern "*$interfaceName*" -ipv6Prefix $ipv6Prefix -index $targetIndex
+    }
+}
+
+# 如果没有找到符合条件的地址，选择第 N 个符合前缀的 IPv6 地址
+if (-not $preferredIPv6) {
+    $preferredIPv6 = $ipv6Addresses | Where-Object { $_.IPAddress -like $ipv6Prefix } | Select-Object -Skip ($targetIndex - 1) -First 1
+}
+
+# 输出选择的 IPv6 地址
+if ($preferredIPv6) {
+    Write-Output $preferredIPv6.IPAddress
+} else {
+    Write-Output "No suitable IPv6 address found."
+}
+
+```
