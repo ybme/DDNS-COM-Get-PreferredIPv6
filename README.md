@@ -1,4 +1,5 @@
 # DDNS-COM-Get-PreferredIPv6
+该脚本用于 在 DDNS-Go 中 以 通过命令获取 IPV6 地址
 
 ### 步骤 1：打开 PowerShell 以管理员身份运行
 右键点击 "开始" 菜单按钮，然后选择 "Windows PowerShell（管理员）"。
